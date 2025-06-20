@@ -26,3 +26,4 @@ python headerhawk.py
 ```bash
 pip install -r requirements.txt
 ```
+"HeaderHawk provides baseline checks — but some large platforms may implement equivalent or stronger protections using custom configurations."
