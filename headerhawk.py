@@ -3,9 +3,11 @@ from colorama import Fore, Style, init
 from urllib.parse import urlparse
 import socket
 import ipaddress
+from pyfiglet import figlet_format
 
 init(autoreset=True)
 
+# ------------------- Security Headers Definition -------------------
 SECURITY_HEADERS = {
     "Strict-Transport-Security": {
         "check": lambda v: "max-age" in v and "includeSubDomains" in v,
@@ -54,10 +56,22 @@ SECURITY_HEADERS = {
     },
 }
 
+# ------------------- Banner -------------------
+def print_banner():
+    print(Fore.CYAN + Style.BRIGHT + figlet_format("HeaderHawk"))
+    print(f"{Style.BRIGHT}{Fore.BLUE}HeaderHawk – Security Headers Audit Tool (v1.0)")
+    print(f"{Fore.MAGENTA}https://github.com/jasshub/HeaderHawk\n{Style.RESET_ALL}")
+
+# ------------------- Internet Check -------------------
+def is_internet_available():
+    try:
+        socket.create_connection(("8.8.8.8", 53), timeout=3)
+        return True
+    except OSError:
+        return False
+
+# ------------------- Domain Resolver & Filter -------------------
 def is_url_safe_and_resolved(url):
-    """
-    Validate the scheme and ensure it resolves to a public IP address.
-    """
     try:
         parsed = urlparse(url)
         if parsed.scheme not in ["http", "https"]:
@@ -66,7 +80,6 @@ def is_url_safe_and_resolved(url):
         ip = socket.gethostbyname(parsed.hostname)
         ip_obj = ipaddress.ip_address(ip)
 
-        # Block private, loopback, link-local, and reserved IPs
         if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved:
             return False
 
@@ -74,6 +87,7 @@ def is_url_safe_and_resolved(url):
     except Exception:
         return False
 
+# ------------------- Main Scanner -------------------
 def check_security_headers():
     url_input = input("🌐 Enter the website URL (e.g., example.com or https://example.com): ").strip()
 
@@ -127,5 +141,11 @@ def check_security_headers():
     else:
         print(f"{Fore.RED}❌ Unsafe or disallowed URL: {url_input}")
 
+# ------------------- Entry Point -------------------
 if __name__ == "__main__":
-    check_security_headers()
+    print_banner()
+
+    if not is_internet_available():
+        print(f"{Fore.RED}❌ Internet connection is not working. Please check and try again.\n")
+    else:
+        check_security_headers()
